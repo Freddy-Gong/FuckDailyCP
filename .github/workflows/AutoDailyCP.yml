@@ -41,8 +41,6 @@ jobs:
           PASSWORD: ${{ secrets.SCHOOL_PASSWORD }}
           ADDRESS: ${{ secrets.ADDRESS }}
         run: |
-          echo $PWD
-          ls .
           python3 DailyCP.py ${SCHOOL_NAME} ${ACCOUNT} ${PASSWORD} ${ADDRESS} $PWD/formdb
       - name: Upload formdb
         uses: actions/upload-artifact@master
