@@ -1,3 +1,4 @@
+from typing import Text
 import requests
 import json
 import io
@@ -14,12 +15,13 @@ from Crypto.Cipher import AES
 
 
 class DailyCP:
-    def __init__(self, schoolName="安徽理工大学"):
+    def __init__(self, schoolName="安徽理工大学", SEVER_KEY=""):
         self.key = "ST83=@XV"  # dynamic when app update
         self.session = requests.session()
         self.host = ""
         self.loginUrl = ""
         self.isIAPLogin = True
+        self.SEVER_KEY = SEVER_KEY
         self.session.headers.update({
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36 Edg/83.0.478.37",
             # "X-Requested-With": "XMLHttpRequest",
@@ -40,6 +42,7 @@ class DailyCP:
         school = [j for i in ret["data"]
                   for j in i["datas"] if j["name"] == schoolName]
         if len(school) == 0:
+            self.send_Info(title="报错",info="不支持的学校或者学校名称错误,以下是支持的学校列表{0}".format(ret))
             print("不支持的学校或者学校名称错误,以下是支持的学校列表")
             print(ret)
             exit()
@@ -47,8 +50,10 @@ class DailyCP:
             "https://mobile.campushoy.com/v6/config/guest/tenant/info?ids={ids}".format(ids=school[0]["id"]))
         self.loginUrl = ret["data"][0]["ampUrl"]
         if ret == "":
+            self.send_Info(title="报错",info="学校并没有申请入驻今日校园平台")
             print("学校并没有申请入驻今日校园平台")
             exit()
+        self.send_Info(title="登录信息",info="{name}的登录地址{url}".format(name=schoolName, url=self.loginUrl))
         print("{name}的登录地址{url}".format(name=schoolName, url=self.loginUrl))
         self.host = re.findall(r"//(.*?)/", self.loginUrl)[0]
 
@@ -234,13 +239,13 @@ class DailyCP:
 
     def autoComplete(self, address, dbpath):
         collectList = self.getCollectorList()
+        self.send_Info(title="收集列表",info=collectList)
         print(collectList)
         for item in collectList:
             # if item["isHandled"] == True:continue
             detail = self.getCollectorDetail(item["wid"])
             form = self.getCollectorFormFiled(
                 detail["collector"]["formWid"], detail["collector"]["wid"])
-            print(form)
             formpath = "{dbpath}/{charac}.json".format(
                 charac=self.getFormCharac(item), dbpath=dbpath)
             if os.path.exists(formpath):
@@ -274,23 +279,43 @@ class DailyCP:
                 with open(formpath, "wb") as file:
                     file.write(json.dumps(
                         form, ensure_ascii=False).encode("utf-8"))
+                    self.send_Info(title="表单信息", info="请手动填写{formpath}，之后重新运行脚本".format(formpath=formpath))
                     print("请手动填写{formpath}，之后重新运行脚本".format(formpath=formpath))
                     exit()
 
         confirmList = self.getNoticeList()
-        print(confirmList)
         for item in confirmList:
             self.confirmNotice(item["noticeWid"])
 
+    def send_Info(self, title, info):
+        if self.SEVER_KEY != "":
+            api_url = "https://sc.ftqq.com/"+ self.SEVER_KEY +".send"
+            data = {
+                "text": title,
+                "desp": info,
+            }
+            result = requests.post(api_url,data=data)
+            if result.status_code == 200:
+                print("消息发送成功")
+            else:
+                print("消息发送失败")
+        else:
+            print("未配置Server酱")
+            pass
+
 
 if __name__ == "__main__":
-    if len(sys.argv) != 6:
-        print("python3 DailyCp.py 学校全名 学号 密码 定位地址 formdb文件夹绝对路径")
+    if len(sys.argv) == 7:
+        app = DailyCP(schoolName=sys.argv[1], SEVER_KEY=sys.argv[6])
+    elif len(sys.argv) != 6:
+        print("python3 DailyCp.py 学校全名 学号 密码 定位地址 formdb文件夹绝对路径 [Server 酱API]")
         exit()
-    app = DailyCP(sys.argv[1])
+    else:
+        app = DailyCP(sys.argv[1])
     if not app.login(sys.argv[2], sys.argv[3]):
         exit()
     app.autoComplete(sys.argv[4], sys.argv[5])
+
 
 # Author:HuangXu,FengXinYang,ZhouYuYang.
 # By:AUST HACKER
