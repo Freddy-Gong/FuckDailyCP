@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: 当前文件",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "args": [
+        "长春师范大学",
+        "130626199706245410",
+        "chenlipeng.ok",
+        "河北省保定市定兴县东落堡村",
+        "M:\\WorkSpace\\FuckDailyCP"
+      ]
+    }
+  ]
+}
