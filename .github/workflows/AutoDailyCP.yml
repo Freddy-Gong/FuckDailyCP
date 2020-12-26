@@ -1,9 +1,3 @@
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-# https://github.com/lemofire/AutoDailyCP
-# Lisence: MIT
-# Author: 柠火
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 name: AutoDailyCP
 
 on:
@@ -47,7 +41,7 @@ jobs:
           PASSWORD: ${{ secrets.SCHOOL_PASSWORD }}
           ADDRESS: ${{ secrets.ADDRESS }}
         run: |
-          python3 DailyCP.py ${SCHOOL_NAME} ${ACCOUNT} ${PASSWORD} ${ADDRESS}
+          python3 DailyCP.py ${SCHOOL_NAME} ${ACCOUNT} ${PASSWORD} ${ADDRESS} $PWD/formdb
       - name : Upload formdb
         uses: actions/upload-artifact@master
         with:
