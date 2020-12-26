@@ -7,11 +7,15 @@ import time
 import re
 import pyDes
 import base64
+import logging
+import coloredlogs
 import uuid
 import sys
 import os
 import hashlib
 from Crypto.Cipher import AES
+
+logging.basicConfig(filename="./logs/今日校园.log",filemode='a',datefmt='%Y-%m-%d%I:%M:%S %p',encoding="utf-8")
 
 
 class DailyCP:
@@ -22,7 +26,8 @@ class DailyCP:
         self.loginUrl = ""
         self.isIAPLogin = True
         self.SEVER_KEY = SEVER_KEY
-        self.info_list = []
+        self.logger = logging.getLogger(__name__)
+        coloredlogs.install(logger=self.logger, level="INFO")
         self.session.headers.update({
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36 Edg/83.0.478.37",
             # "X-Requested-With": "XMLHttpRequest",
@@ -43,19 +48,16 @@ class DailyCP:
         school = [j for i in ret["data"]
                   for j in i["datas"] if j["name"] == schoolName]
         if len(school) == 0:
-            print("不支持的学校或者学校名称错误,以下是支持的学校列表")
-            print(ret)
-            self.info_list.append("不支持的学校或者学校名称错误,以下是支持的学校列表{0}".format(ret))
+            self.logger.info("不支持的学校或者学校名称错误,以下是支持的学校列表")
+            self.logger.info(ret)
             exit()
         ret = self.request(
             "https://mobile.campushoy.com/v6/config/guest/tenant/info?ids={ids}".format(ids=school[0]["id"]))
         self.loginUrl = ret["data"][0]["ampUrl"]
         if ret == "":
-            self.info_list.append("学校并没有申请入驻今日校园平台")
-            print("学校并没有申请入驻今日校园平台")
+            self.logger.info("学校并没有申请入驻今日校园平台")
             exit()
-        print("{name}的登录地址{url}".format(name=schoolName, url=self.loginUrl))
-        self.info_list.append("{name}的登录地址{url}".format(name=schoolName, url=self.loginUrl))
+        self.logger.info("{name}的登录地址{url}".format(name=schoolName, url=self.loginUrl))
         self.host = re.findall(r"//(.*?)/", self.loginUrl)[0]
 
     def encrypt(self, text):
@@ -166,10 +168,8 @@ class DailyCP:
             body["password"] = password
         ret = self.request(ret.url, body, False, False,
                            Referer=self.loginUrl).url
-        print(self.session.cookies)
-        print("本函数不一定能用")
-        self.info_list.append(self.session.cookies)
-        self.info_list.append("本函数不一定能用")
+        self.logger.info(self.session.cookies)
+        self.logger.info("本函数不一定能用")
         return True
 
     def getCollectorList(self):
@@ -196,9 +196,7 @@ class DailyCP:
         }
         ret = self.request(
             "https://{host}/wec-counselor-stu-apps/stu/notice/confirmNotice", body)
-        print(ret["message"])
-        self.info_list.append(ret["message"])
-        self.info_list.append("SUCCESS")
+        self.logger.info(ret["message"])
         return ret["message"] == "SUCCESS"
 
     def getCollectorDetail(self, collectorWid):
@@ -226,9 +224,7 @@ class DailyCP:
         }
         ret = self.request(
             "https://{host}/wec-counselor-collector-apps/stu/collector/submitForm", body)
-        print(ret["message"])
-        self.info_list.append(ret["message"])
-        self.info_list.append("SUCCESS")
+        self.logger.info(ret["message"])
         return ret["message"] == "SUCCESS"
 
     def autoFill(self, rows):
@@ -246,8 +242,7 @@ class DailyCP:
 
     def autoComplete(self, address, dbpath):
         collectList = self.getCollectorList()
-        self.info_list.append(collectList)
-        print(collectList)
+        self.logger.info(collectList)
         for item in collectList:
             # if item["isHandled"] == True:continue
             detail = self.getCollectorDetail(item["wid"])
@@ -286,8 +281,7 @@ class DailyCP:
                 with open(formpath, "wb") as file:
                     file.write(json.dumps(
                         form, ensure_ascii=False).encode("utf-8"))
-                    print("请手动填写{formpath}，之后重新运行脚本".format(formpath=formpath))
-                    self.info_list.append("请手动填写{formpath}，之后重新运行脚本".format(formpath=formpath))
+                    self.logger.info("请手动填写{formpath}，之后重新运行脚本".format(formpath=formpath))
                     exit()
 
         confirmList = self.getNoticeList()
@@ -296,21 +290,23 @@ class DailyCP:
 
     def send_Info(self):
         if self.SEVER_KEY != "":
-            title = "今日校园日志"
-            info = self.info_list
-            api_url = "https://sc.ftqq.com/"+ self.SEVER_KEY +".send"
-            data = {
-                "text": title,
-                "desp": info,
-            }
-            result = requests.post(api_url,data=data)
-            # print(info)
-            if result.status_code == 200:
-                print("消息发送成功")
-            else:
-                print("消息发送失败")
+            with open("./logs/今日校园.log",'r',encoding='utf-8') as f:
+                lines = f.readlines()
+                info = lines[-4]+lines[-3]+lines[-2] +lines[-1]
+                title = "今日校园 - 日志"
+                api_url = "https://sc.ftqq.com/"+ self.SEVER_KEY +".send"
+                data = {
+                    "text": title,
+                    "desp": info,
+                }
+                result = requests.post(api_url,data=data)
+                self.logger.info(info)
+                if result.status_code == 200:
+                    self.logger.info("消息发送成功")
+                else:
+                    self.logger.info("消息发送失败")
         else:
-            print("未配置Server酱")
+            self.logger.info("未配置Server酱")
             pass
 
 
@@ -318,7 +314,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 7:
         app = DailyCP(schoolName=sys.argv[1], SEVER_KEY=sys.argv[6])
     elif len(sys.argv) != 6:
-        print("python3 DailyCp.py 学校全名 学号 密码 定位地址 formdb文件夹绝对路径 [Server 酱API]")
+        self.logger.info("python3 DailyCp.py 学校全名 学号 密码 定位地址 formdb文件夹绝对路径 [Server 酱API]")
         exit()
     else:
         app = DailyCP(sys.argv[1])
