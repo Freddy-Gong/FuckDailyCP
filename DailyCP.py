@@ -322,10 +322,10 @@ if __name__ == "__main__":
         exit()
     else:
         app = DailyCP(sys.argv[1])
-        if not app.login(sys.argv[2], sys.argv[3]):
-            exit()
-        app.autoComplete(sys.argv[4], sys.argv[5])
-        app.send_Info()
+    if not app.login(sys.argv[2], sys.argv[3]):
+        exit()
+    app.autoComplete(sys.argv[4], sys.argv[5])
+    app.send_Info()
 
 # Author:HuangXu,FengXinYang,ZhouYuYang.
 # By:AUST HACKER
