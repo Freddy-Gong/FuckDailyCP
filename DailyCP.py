@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from typing import Text
 import requests
 import json
@@ -15,7 +16,7 @@ import os
 import hashlib
 from Crypto.Cipher import AES
 
-logging.basicConfig(filename="./logs/今日校园.log",filemode='a',datefmt='%Y-%m-%d%I:%M:%S %p',encoding="utf-8")
+logging.basicConfig(filename="./logs/今日校园.log", filemode='a', datefmt="%Y-%m-%d%I:%M:%S %p")
 
 
 class DailyCP:
@@ -71,8 +72,9 @@ class DailyCP:
                                 len(key)) * chr(len(key) - len(s) % len(key))
 
         def unpad(s): return s[:-ord(s[len(s) - 1:])]
+
         text = pad(
-            "TdEEGazAXQMBzEAisrYaxRRax5kmnMJnpbKxcE6jxQfWRwP2J78adKYm8WzSkfXJ"+text).encode("utf-8")
+            "TdEEGazAXQMBzEAisrYaxRRax5kmnMJnpbKxcE6jxQfWRwP2J78adKYm8WzSkfXJ" + text).encode("utf-8")
         aes = AES.new(str.encode(key), AES.MODE_CBC,
                       str.encode("ya8C45aRrBEn8sZH"))
         return base64.b64encode(aes.encrypt(text))
@@ -126,7 +128,7 @@ class DailyCP:
 
         ret = self.session.get(
             "https://{host}/iap/login?service=https://{host}/portal/login".format(host=self.host)).url
-        client = ret[ret.find("=")+1:]
+        client = ret[ret.find("=") + 1:]
         ret = self.request("https://{host}/iap/security/lt",
                            "lt={client}".format(client=client), True, False)
         client = ret["result"]["_lt"]
@@ -149,8 +151,9 @@ class DailyCP:
             return False
 
     def checkNeedCaptchaAuthServer(self, username):
-        ret = self.request("http://{host}/authserver/needCaptcha.html?username={username}&pwdEncrypt2=pwdEncryptSalt".format(
-            username=username), parseJson=False).text
+        ret = self.request(
+            "http://{host}/authserver/needCaptcha.html?username={username}&pwdEncrypt2=pwdEncryptSalt".format(
+                username=username), parseJson=False).text
         return ret == "true"
 
     def loginAuthserver(self, username, password, captcha=""):
@@ -212,7 +215,8 @@ class DailyCP:
             "formWid": formWid,
             "collectorWid": collectorWid
         }
-        return self.request("https://{host}/wec-counselor-collector-apps/stu/collector/getFormFields", body)["datas"]["rows"]
+        return self.request("https://{host}/wec-counselor-collector-apps/stu/collector/getFormFields", body)["datas"][
+            "rows"]
 
     def submitCollectorForm(self, formWid, collectWid, schoolTaskWid, rows, address):
         body = {
@@ -266,7 +270,7 @@ class DailyCP:
                     form = json.loads(file.read().decode("utf-8"))
                     for item in newForm:
                         l = find(form, [['title', item['title']], [
-                                 'description', item['description']]])
+                            'description', item['description']]])
                         item['value'] = l['value']
                         for fieldItemsList in item['fieldItems']:
                             field = find(l['fieldItems'], [
@@ -276,7 +280,7 @@ class DailyCP:
                     self.autoFill(form)
 
                 self.submitCollectorForm(detail["collector"]["formWid"], detail["collector"]
-                                         ["wid"], detail["collector"]["schoolTaskWid"], form, address)
+                ["wid"], detail["collector"]["schoolTaskWid"], form, address)
             else:
                 with open(formpath, "wb") as file:
                     file.write(json.dumps(
@@ -290,16 +294,16 @@ class DailyCP:
 
     def send_Info(self):
         if self.SEVER_KEY != "":
-            with open("./logs/今日校园.log",'r',encoding='utf-8') as f:
+            with open("./logs/今日校园.log", 'r', encoding='utf-8') as f:
                 lines = f.readlines()
-                info = lines[-4]+lines[-3]+lines[-2] +lines[-1]
+                info = lines[-4] + lines[-3] + lines[-2] + lines[-1]
                 title = "今日校园 - 日志"
-                api_url = "https://sc.ftqq.com/"+ self.SEVER_KEY +".send"
+                api_url = "https://sc.ftqq.com/" + self.SEVER_KEY + ".send"
                 data = {
                     "text": title,
                     "desp": info,
                 }
-                result = requests.post(api_url,data=data)
+                result = requests.post(api_url, data=data)
                 self.logger.info(info)
                 if result.status_code == 200:
                     self.logger.info("消息发送成功")
@@ -314,15 +318,14 @@ if __name__ == "__main__":
     if len(sys.argv) == 7:
         app = DailyCP(schoolName=sys.argv[1], SEVER_KEY=sys.argv[6])
     elif len(sys.argv) != 6:
-        self.logger.info("python3 DailyCp.py 学校全名 学号 密码 定位地址 formdb文件夹绝对路径 [Server 酱API]")
+        print("python3 DailyCp.py 学校全名 学号 密码 定位地址 formdb文件夹绝对路径 [Server 酱API]")
         exit()
     else:
         app = DailyCP(sys.argv[1])
-    if not app.login(sys.argv[2], sys.argv[3]):
-        exit()
-    app.autoComplete(sys.argv[4], sys.argv[5])
-    app.send_Info()
-
+        if not app.login(sys.argv[2], sys.argv[3]):
+            exit()
+        app.autoComplete(sys.argv[4], sys.argv[5])
+        app.send_Info()
 
 # Author:HuangXu,FengXinYang,ZhouYuYang.
 # By:AUST HACKER
