@@ -297,7 +297,7 @@ class DailyCP:
     def send_Info(self):
         if self.SEVER_KEY != "":
             title = "今日校园日志"
-            info = "\n".join(self.info_list)
+            info = self.info_list
             api_url = "https://sc.ftqq.com/"+ self.SEVER_KEY +".send"
             data = {
                 "text": title,
