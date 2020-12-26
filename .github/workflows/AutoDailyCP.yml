@@ -2,7 +2,7 @@ name: AutoDailyCP
 
 on:
   push:
-    branches: 
+    branches:
       - master
   watch:
     types: started
@@ -22,7 +22,7 @@ jobs:
           sudo -E apt-get -yqq install python3
       - name: Download DailyCP
         run: |
-          git clone https://gitee.com/Finch1/FuckDailyCP
+          git clone https://github.com/allinu/FuckDailyCP
           cp -r ./FuckDailyCP/* ./
       - name: Install extensions
         run: |
@@ -41,8 +41,10 @@ jobs:
           PASSWORD: ${{ secrets.SCHOOL_PASSWORD }}
           ADDRESS: ${{ secrets.ADDRESS }}
         run: |
+          echo $PWD
+          ls .
           python3 DailyCP.py ${SCHOOL_NAME} ${ACCOUNT} ${PASSWORD} ${ADDRESS} $PWD/formdb
-      - name : Upload formdb
+      - name: Upload formdb
         uses: actions/upload-artifact@master
         with:
           name: formdb

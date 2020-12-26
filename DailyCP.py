@@ -240,7 +240,7 @@ class DailyCP:
             detail = self.getCollectorDetail(item["wid"])
             form = self.getCollectorFormFiled(
                 detail["collector"]["formWid"], detail["collector"]["wid"])
-
+            print(form)
             formpath = "{dbpath}/{charac}.json".format(
                 charac=self.getFormCharac(item), dbpath=dbpath)
             if os.path.exists(formpath):
