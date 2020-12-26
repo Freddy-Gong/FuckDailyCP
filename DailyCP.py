@@ -16,9 +16,6 @@ import os
 import hashlib
 from Crypto.Cipher import AES
 
-logging.basicConfig(filename="./logs/今日校园.log", filemode='a', datefmt="%Y-%m-%d%I:%M:%S %p")
-
-
 class DailyCP:
     def __init__(self, schoolName="安徽理工大学", SEVER_KEY=""):
         self.key = "ST83=@XV"  # dynamic when app update
@@ -294,21 +291,19 @@ class DailyCP:
 
     def send_Info(self):
         if self.SEVER_KEY != "":
-            with open("./logs/今日校园.log", 'r', encoding='utf-8') as f:
-                lines = f.readlines()
-                info = lines[-4] + lines[-3] + lines[-2] + lines[-1]
-                title = "今日校园 - 日志"
-                api_url = "https://sc.ftqq.com/" + self.SEVER_KEY + ".send"
-                data = {
-                    "text": title,
-                    "desp": info,
-                }
-                result = requests.post(api_url, data=data)
-                self.logger.info(info)
-                if result.status_code == 200:
-                    self.logger.info("消息发送成功")
-                else:
-                    self.logger.info("消息发送失败")
+            info = "打卡完毕"
+            title = "今日校园 - 日志"
+            api_url = "https://sc.ftqq.com/" + self.SEVER_KEY + ".send"
+            data = {
+                "text": title,
+                "desp": info,
+            }
+            result = requests.post(api_url, data=data)
+            self.logger.info(info)
+            if result.status_code == 200:
+                self.logger.info("消息发送成功")
+            else:
+                self.logger.info("消息发送失败")
         else:
             self.logger.info("未配置Server酱")
             pass
@@ -326,13 +321,3 @@ if __name__ == "__main__":
         exit()
     app.autoComplete(sys.argv[4], sys.argv[5])
     app.send_Info()
-
-# Author:HuangXu,FengXinYang,ZhouYuYang.
-# By:AUST HACKER
-
-# 2020/5/20 重要更新：修复登录过程，移除验证码（不需要），优化代码格式，感谢giteee及时反馈。
-# 2020/5/28 更改为使用自动获取学校URL的方式，更改为使用参数形式，添加另一种登录形式AuthServer的支持(已完成但未测试)。感谢柠火的反馈。
-# 2020/6/1 修复BUG，发现AuthServer的登录方式每个学校都不一样。支持任意表单内容自定义（详情见输出信息和formdb/1129.json）。感谢涅灵的反馈。
-# 2020/6/2 AuthServer的登录网址不再使用硬编码的方式，理论上能支持所有学校了吧？感谢涅灵的反馈。
-# 2020/6/17 修复crontab使用中相对路径的问题。识别form特征。
-# 2020/7/5 浪费别人的时间是一种可耻的行为。
